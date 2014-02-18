@@ -27,8 +27,6 @@ image:
         source_zip: 'http://wordpress.org/themes/download/responsive.1.9.5.1.zip'
 container:
   name:
-    environment: dev
-    service: scs-example-blog
     role: wordpress
   dependency:
     provide:

@@ -1,14 +1,20 @@
-This repo is a tutorial and example of [`scs-utils`](https://github.com/dpb587/scs-utils) managing a
-[WordPress](http://wordpress.org/) blog with a [MySQL](http://www.mysql.com/) master/slave server across
-multiple [Docker](https://www.docker.io/) containers and multiple hosts.
+This repo is a demo using the *wip/prototype* [`scs-utils`](https://github.com/dpb587/scs-utils) managing a
+[WordPress](http://wordpress.org/) blog with a [MySQL](http://www.mysql.com/) master/slave server across multiple
+[Docker](https://www.docker.io/) containers and multiple hosts.
+
+This creates and runs roles based on:
+
+ * [`scs-mysql`](https://github.com/dpb587/scs-mysql) ([settings](https://github.com/dpb587/scs-example-blog/blob/master/mysql-master/manifest.yaml))
+ * [`scs-mysql-slave`](https://github.com/dpb587/scs-mysql-slave) ([settings](https://github.com/dpb587/scs-example-blog/blob/master/mysql-slave/manifest.yaml)) - requires local `root`/`password` and master `repl`/`password`
+ * [`scs-wordpress`](https://github.com/dpb587/scs-wordpress) ([settings](https://github.com/dpb587/scs-example-blog/blob/master/wordpress/manifest.yaml)) - requires a `scs_example` user and database; installs the [`jetpack`](https://wordpress.org/plugins/jetpack/) plugin and [`responsive`](https://wordpress.org/themes/responsive) theme
 
 You'll see all the commands you'll need to run below and the prompt will indicate where you should run them:
 
  * `host$` - from your local machine
- * `vagrant$` - from your virtual machine (via `vagrant ssh`)
+ * `vagrant$`, `vagrant2$` - from your virtual machine (via `vagrant ssh`)
  * `container$` - from inside a container (via `lxc-attach ...`)
 
-This is primarily a prototype and I've primarily been using it under the following environment:
+I've primarily been running this under the following environment:
 
     $ uname -rs
     Darwin 13.0.2
@@ -48,9 +54,8 @@ The `scs-disco-server` handles service registration and discovery. Add it to sup
 
 To simplify things, use `scs-disco-client` to forward local ports to wherever our soon-to-be-running Docker processes
 end up. The command specifies that we'll forward port `80` to the `http` endpoint from `wordpress` and port `3306` to
-`mysql` from `mysql-master`. It will alias `127.0.191.92` to `lo0` and use it for binding the forwarded ports. It will
-also add `scs-example-blog.dev` to `/etc/hosts` to make things easier. The disco server may have multiple
-environments/services registered, so we'll use endpoints from the `dev` environment and `scs-example-blog` service.
+`mysql` from `mysql-master`. It will use `127.0.191.92` for binding ports (aliasing it to `lo0`) and add
+`scs-example-blog.dev` to `/etc/hosts`.
 
 Run the following and keep it running in a minimized terminal...
 
@@ -58,8 +63,7 @@ Run the following and keep it running in a minimized terminal...
                   --forward 80:http:wordpress \
                   --forward 3306:mysql:mysql-master \
                   --ip 127.0.191.92 \
-                  --host scs-example-blog.dev \
-                  dev scs-example-blog
+                  --host scs-example-blog.dev
                 ...snip...
 
 
@@ -81,7 +85,7 @@ Then add it to supervisor and get it started...
 
 To initialize MySQL, we'll need to connect to the container to run some local commands...
 
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep 'scs-dev-scs-example-blog-mysql-master--' | awk '{ print $1 }') /bin/bash
+       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-master--' | awk '{ print $1 }') /bin/bash
 
 Run `mysql_secure_installation` and set the `root` password to `password`...
 
@@ -140,7 +144,7 @@ Then add it to supervisor to get it started...
 
 To initialize MySQL, we'll need to connect to the container to run some local commands...
 
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep 'scs-dev-scs-example-blog-mysql-slave--' | awk '{ print $1 }') /bin/bash
+       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /bin/bash
 
 Run `mysql_secure_installation` and set the `root` password to `password`...
 
@@ -154,7 +158,7 @@ Within a few seconds of setting the password, the slave should immediately start
                 ...snip...
               > exit
 
-Add a test comment and then re-run the query to verify the new comment is replicating...
+Add a test comment and then re-run the query to verify live replication...
 
           host$ open 'http://scs-example-blog.dev/wordpress/?p=1#respond'
 
@@ -192,7 +196,8 @@ will be stopped, and local `3306` connections will be terminated:
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 502 Bad Gateway
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep 'scs-dev-scs-example-blog-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check | grep -E 'Running:|Slave_Master_Host:'
+       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+                  | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.92
                 Slave_Slave_IO_Running: No
                 Slave_Slave_SQL_Running: No
@@ -210,7 +215,8 @@ Then verify things are back online...
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 200 OK
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep 'scs-dev-scs-example-blog-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check | grep -E 'Running:|Slave_Master_Host:'
+       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+                  | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.92
                 Slave_Slave_IO_Running: Yes
                 Slave_Slave_SQL_Running: Yes
@@ -240,7 +246,7 @@ Now let's copy over the existing database to the new instance...
        vagrant$ wget -qO ~/.ssh/vagrant https://raw2.github.com/mitchellh/vagrant/master/keys/vagrant
        vagrant$ chmod 600 ~/.ssh/vagrant
        vagrant$ pushd /var/lib/scs-utils
-       vagrant$ tar -czf- volume--local--dev-scs-example-blog-mysql-master-* \
+       vagrant$ tar -czf- volume--local--default-default-mysql-master-* \
                   | ssh -i ~/.ssh/vagrant vagrant@192.168.191.93 \
                     'sudo bash -c "mkdir -p /var/lib/scs-utils && cd /var/lib/scs-utils && chmod 700 . && tar -xzf-"'
        vagrant$ popd
@@ -261,8 +267,8 @@ back up...
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 200 OK
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep 'scs-dev-scs-example-blog-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check | grep -E 'Running:|Slave_Master_Host:'
+       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+                  | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.93
                 Slave_Slave_IO_Running: Yes
                 Slave_Slave_SQL_Running: Yes
-

@@ -9,8 +9,6 @@ image:
       serverid: '64'
 container:
   name:
-    environment: dev
-    service: scs-example-blog
     role: mysql-master
   dependency:
     provide:

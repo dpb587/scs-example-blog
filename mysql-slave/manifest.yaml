@@ -14,8 +14,6 @@ image:
       replicate: [ 'scs_example' ]
 container:
   name:
-    environment: dev
-    service: scs-example-blog
     role: mysql-slave
   dependency:
     provide:

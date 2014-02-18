@@ -1,0 +1,29 @@
+#
+# this has some patches specific to running under this example vagrant setup
+#
+global:
+  container:
+    dependency:
+      # these are really only necessary when starting a second vagrant instance
+      provide:
+        disco:
+          server:
+            address: 192.168.191.92
+      require:
+        disco:
+          server:
+            address: 192.168.191.92
+image:
+  engine:
+    options:
+      build_patch:
+        pre:
+          # make our docker images use the local cache server we've installed on
+          # vagrant to save some bandwidth and speed things up significantly
+          - 'echo "Acquire::http::Proxy \"http://172.17.42.1:3142\";" > /etc/apt/apt.conf.d/01proxy'
+container:
+  network:
+    options:
+      # vagrant uses eth0 for host-only; we need to use eth1 when determining
+      # network addresses so we're publishing addresses that the host can reach
+      interface: eth1

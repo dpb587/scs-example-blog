@@ -1,0 +1,44 @@
+image:
+  source:
+      type: git
+      uri: https://github.com/dpb587/scs-wordpress.git
+  engine:
+    method: docker
+  config:
+    main:
+      http_host: 'localhost'
+      database_user: 'scs_example'
+      database_password: 'password'
+      database_name: 'scs_example'
+      # https://api.wordpress.org/secret-key/1.1/salt/
+      wordpress_token_auth_key: '6^gJ;r!@d|P*Lt(254-WwYAK;/>~$+MEm7ESLD<I.n5t;CyKkrEFFXigM~[T/UwL'
+      wordpress_token_auth_salt: 'qb3Y0O!+|p(~`N?Yt+>y_.^#syN#6IO9r|ijusQ-AWaDt]p9BW-V7}DD!V8t?@xf'
+      wordpress_token_secureauth_key: 'bE208|)f$K|$#|Y5WGMm`^-bjSLaY:g:~B8P_}eoy<$(kZ=?&m[~+},_>;DE1|mc'
+      wordpress_token_secureauth_salt: '2i?YMsl_9XOnru:D:#4m;5z=!RY+`?,ms)%&t;vuN~5P[Ysex86],88J+1?WSlsa'
+      wordpress_token_loggedin_key: '-+wt`}~iTnB]J]UD<LU#,Mez,bkONE||+4+d*4vvo?HBh9z1_wBkc6m9qw6mm877'
+      wordpress_token_loggedin_salt: 'hkwrv^MrPN;xXLAJop}HhuH444`])gqo0IV-D@g;s9>X5Rm>:C5U]|+6A!s[lLa/'
+      wordpress_token_nonce_key: '#T7|[.lPf{E@gDH,,-<AB7Jve!qMO3Fo &k#@#b*{P .So.,KOS-jgoNDbEGzpZe'
+      wordpress_token_nonce_salt: 'cJG-EZ}IA:Vp+6Ym3uL|+]1.XLB$<cauTI~U@j(k<L_jOY) 0j9duKQ{7}wF93`~'
+    plugin:
+      jetpack:
+        source_zip: 'http://downloads.wordpress.org/plugin/jetpack.2.6.1.zip'
+    theme:
+      responsive:
+        source_zip: 'http://wordpress.org/themes/download/responsive.1.9.5.1.zip'
+container:
+  name:
+    environment: dev
+    service: scs-example-blog
+    role: wordpress
+  dependency:
+    provide:
+      http:
+        method: disco
+    require:
+      mysql:
+        method: disco
+        options:
+          name.role: "mysql-master"
+    volume:
+      uploads:
+        method: local

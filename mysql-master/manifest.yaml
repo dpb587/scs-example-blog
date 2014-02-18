@@ -1,0 +1,23 @@
+image:
+  source:
+      type: git
+      uri: https://github.com/dpb587/scs-mysql.git
+  engine:
+    method: docker
+  config:
+    main:
+      serverid: '64'
+container:
+  name:
+    environment: dev
+    service: scs-example-blog
+    role: mysql-master
+  dependency:
+    provide:
+      mysql:
+        method: disco
+    volume:
+      data:
+        method: local
+      binlog:
+        method: local

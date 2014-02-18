@@ -167,7 +167,7 @@ We're done with the container now and can exit back to the vagrant shell...
      container$ exit
 
 
-## Service Discovery Updates
+## Service Discovery - updates
 
 Now that everything is running successfully, we can verify that the services follow their dependencies. Restore the
 `scs-disco-client` window running on the host to see the registration events come through.
@@ -222,7 +222,7 @@ Then verify things are back online...
                 Slave_Slave_SQL_Running: Yes
 
 
-## Distributed Service Discovery
+## Service Discovery - multi-host
 
 Right now all the services are running on a single virtual machine. Let's move `mysql-master` to a new virtual machine.
 Create a second clone of this repository, and patch `Vagrantfile` with a different IP address...

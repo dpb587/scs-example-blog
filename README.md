@@ -85,7 +85,7 @@ Then add it to supervisor and get it started...
 
 To initialize MySQL, we'll need to connect to the container to run some local commands...
 
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-master--' | awk '{ print $1 }') /bin/bash
+       vagrant$ lxc-attach -n $(cat mysql-master/docker.cid) /bin/bash
 
 Run `mysql_secure_installation` and set the `root` password to `password`...
 
@@ -144,7 +144,7 @@ Then add it to supervisor to get it started...
 
 To initialize MySQL, we'll need to connect to the container to run some local commands...
 
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /bin/bash
+       vagrant$ lxc-attach -n $(cat mysql-slave/docker.cid) /bin/bash
 
 Run `mysql_secure_installation` and set the `root` password to `password`...
 
@@ -196,7 +196,7 @@ will be stopped, and local `3306` connections will be terminated:
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 502 Bad Gateway
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+       vagrant$ lxc-attach -n $(cat mysql-slave/docker.cid) /scs/scs/bin/status-check \
                   | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.92
                 Slave_Slave_IO_Running: No
@@ -215,7 +215,7 @@ Then verify things are back online...
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 200 OK
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+       vagrant$ lxc-attach -n $(cat mysql-slave/docker.cid) /scs/scs/bin/status-check \
                   | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.92
                 Slave_Slave_IO_Running: Yes
@@ -245,11 +245,9 @@ Now let's copy over the existing database to the new instance...
        vagrant$ mkdir -p ~/.ssh
        vagrant$ wget -qO ~/.ssh/vagrant https://raw2.github.com/mitchellh/vagrant/master/keys/vagrant
        vagrant$ chmod 600 ~/.ssh/vagrant
-       vagrant$ pushd /var/lib/scs-utils
-       vagrant$ tar -czf- volume--local--default-default-mysql-master-* \
+       vagrant$ tar -czf- mysql-master/volume-* \
                   | ssh -i ~/.ssh/vagrant vagrant@192.168.191.93 \
-                    'sudo bash -c "mkdir -p /var/lib/scs-utils && cd /var/lib/scs-utils && chmod 700 . && tar -xzf-"'
-       vagrant$ popd
+                    'cd /vagrant && chmod 700 . && tar -xzf-'
 
 Now we should start `mysql-master` on `vagrant2` (it will take a few minutes because it needs to recompile and rebuild
 the image from scratch)...
@@ -267,7 +265,7 @@ back up...
           host$ curl -sI http://scs-example-blog.dev/wordpress/ | head -n1
                 HTTP/1.1 200 OK
                 ...snip...
-       vagrant$ lxc-attach -n $(docker ps -notrunc | grep '-mysql-slave--' | awk '{ print $1 }') /scs/scs/bin/status-check \
+       vagrant$ lxc-attach -n $(cat mysql-slave/docker.cid) /scs/scs/bin/status-check \
                   | grep -E 'Running:|Slave_Master_Host:'
                 Slave_Master_Host: 192.168.191.93
                 Slave_Slave_IO_Running: Yes

@@ -25,9 +25,19 @@ container:
         options:
           name.role: "mysql-master"
     volume:
+      _alldata:
+        method: local
+        options:
+          path: /root/scs-example-blog--mysql-master
       data:
-        method: local
+        method: metavol
+        options:
+          volume: _alldata
       binlog:
-        method: local
+        method: metavol
+        options:
+          volume: _alldata
       replaylog:
-        method: local
+        method: metavol
+        options:
+          volume: _alldata

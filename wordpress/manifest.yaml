@@ -41,7 +41,7 @@ container:
       _alldata:
         method: local
         options:
-          path: /root/scs-example-blog--mysql-master
+          path: /root/scs-example-blog--wordpress
       uploads:
         method: metavol
         options:

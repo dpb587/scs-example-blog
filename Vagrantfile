@@ -5,7 +5,7 @@ Vagrant.configure('2') do |config|
   config.vm.network :private_network, ip: '192.168.191.92'
 
   config.vm.provider :virtualbox do |v|
-    v.customize [ 'modifyvm', :id, '--memory', '1024' ]
+    v.customize [ 'modifyvm', :id, '--memory', '1536' ]
   end
 
   config.vm.provision :shell, :inline => 'wget -O- https://raw2.github.com/dpb587/scs-utils/master/bin/scs-bootstrap-dev | bash -s -'

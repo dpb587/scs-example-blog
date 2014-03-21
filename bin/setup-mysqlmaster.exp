@@ -1,0 +1,32 @@
+set container [lindex $argv 0]
+
+set timeout 10
+
+spawn lxc-attach -n $container /usr/bin/mysql -- -u root -ppassword
+
+expect {
+    "mysql> " { send "CREATE DATABASE scs_example;\r" }
+    timeout { puts "ERROR: timeout" ; exit 1 }
+}
+
+expect {
+    "mysql> " { send "GRANT ALL PRIVILEGES ON scs_example.* TO scs_example@\"%\" IDENTIFIED BY \"password\";\r" }
+    timeout { puts "ERROR: timeout" ; exit 1 }
+}
+
+expect {
+    "mysql> " { send "GRANT REPLICATION CLIENT, REPLICATION SLAVE, SELECT ON *.* TO repl@\"%\" IDENTIFIED BY \"password\";\r" }
+    timeout { puts "ERROR: timeout" ; exit 1 }
+}
+
+expect {
+    "mysql> " { send "FLUSH PRIVILEGES;\r" }
+    timeout { puts "ERROR: timeout" ; exit 1 }
+}
+
+expect {
+    "mysql> " { send "exit\r" }
+    timeout { puts "ERROR: timeout" ; exit 1 }
+}
+
+expect eof

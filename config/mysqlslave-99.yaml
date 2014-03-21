@@ -1,0 +1,42 @@
+image:
+  source:
+      type: cwd
+      path: ./source
+  engine:
+    method: docker
+  config:
+    main:
+      serverid: '164'
+      super_username: 'root'
+      super_password: 'password'
+      master_username: 'repl'
+      master_password: 'password'
+      replicate: [ 'scs_example' ]
+container:
+  name:
+    role: mysqlslave
+  provide:
+    mysql:
+      method: disco
+      options:
+        publish.port: 3307
+  require:
+    mysql:
+      method: disco
+      options:
+        name.role: "mysqlmaster"
+  volume:
+    _alldata:
+      method: local
+    data:
+      method: metavol
+      options:
+        volume: _alldata
+    binlog:
+      method: metavol
+      options:
+        volume: _alldata
+    replaylog:
+      method: metavol
+      options:
+        volume: _alldata

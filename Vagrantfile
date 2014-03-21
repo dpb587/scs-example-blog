@@ -6,7 +6,9 @@ Vagrant.configure('2') do |config|
 
   config.vm.provider :virtualbox do |v|
     v.customize [ 'modifyvm', :id, '--memory', '1536' ]
+    v.customize [ 'modifyvm', :id, '--nictype2', 'Am79C973' ]
+    v.customize [ 'modifyvm', :id, '--nicpromisc2', 'allow-all' ]
   end
 
-  config.vm.provision :shell, :inline => 'wget -O- https://raw2.github.com/dpb587/scs-utils/master/bin/scs-bootstrap-dev | bash -s -'
+  config.vm.provision :shell, :inline => 'cd /vagrant && ./provision.sh'
 end

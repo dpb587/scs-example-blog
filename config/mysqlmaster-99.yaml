@@ -1,0 +1,28 @@
+image:
+  source:
+      type: cwd
+      path: ./source
+  engine:
+    method: docker
+  config:
+    main:
+      serverid: '64'
+container:
+  name:
+    role: mysqlmaster
+  provide:
+    mysql:
+      method: disco
+      options:
+        publish.port: 3306
+  volume:
+    _alldata:
+      method: local
+    data:
+      method: metavol
+      options:
+        volume: _alldata
+    binlog:
+      method: metavol
+      options:
+        volume: _alldata

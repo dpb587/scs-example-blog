@@ -26,4 +26,4 @@ container:
     options:
       # vagrant uses eth0 for host-only; we need to use eth1 when determining
       # network addresses so we're publishing addresses that the host can reach
-      interface: eth1
+      host.device: eth1

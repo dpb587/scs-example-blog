@@ -1,7 +1,7 @@
 image:
   source:
-      type: git
-      uri: https://github.com/dpb587/scs-wordpress.git
+      type: cwd
+      path: ./source
   engine:
     method: docker
   config:
@@ -20,29 +20,30 @@ image:
       wordpress_token_nonce_key: '#T7|[.lPf{E@gDH,,-<AB7Jve!qMO3Fo &k#@#b*{P .So.,KOS-jgoNDbEGzpZe'
       wordpress_token_nonce_salt: 'cJG-EZ}IA:Vp+6Ym3uL|+]1.XLB$<cauTI~U@j(k<L_jOY) 0j9duKQ{7}wF93`~'
     plugin:
+      akismet:
+        source_zip: 'http://downloads.wordpress.org/plugin/akismet.2.6.0.zip'
       jetpack:
-        source_zip: 'http://downloads.wordpress.org/plugin/jetpack.2.6.1.zip'
+        source_zip: 'http://downloads.wordpress.org/plugin/jetpack.2.9.2.zip'
     theme:
       responsive:
-        source_zip: 'http://wordpress.org/themes/download/responsive.1.9.5.1.zip'
+        source_zip: 'http://wordpress.org/themes/download/responsive.1.9.5.3.zip'
 container:
   name:
     role: wordpress
-  dependency:
-    provide:
-      http:
-        method: disco
-    require:
-      mysql:
-        method: disco
-        options:
-          name.role: "mysql-master"
-    volume:
-      _alldata:
-        method: local
-        options:
-          path: /root/scs-example-blog--wordpress
-      uploads:
-        method: metavol
-        options:
-          volume: _alldata
+  provide:
+    http:
+      method: disco
+      options:
+        publish.port: 80
+  require:
+    mysql:
+      method: disco
+      options:
+        name.role: "mysqlmaster"
+  volume:
+    _alldata:
+      method: local
+    uploads:
+      method: metavol
+      options:
+        volume: _alldata

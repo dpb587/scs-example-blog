@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# args: command name
+
+set -e
+
+RPWD=$PWD
+
+cd runtime/$2
+exec scs-docker --log-level silly $1 $(find $RPWD/config/common-* | sort -r) $(find $RPWD/config/$2-* | sort -r)

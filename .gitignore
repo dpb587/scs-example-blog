@@ -1,4 +1,4 @@
 /.vagrant
 /scs-utils
-/*/compiled.json
-/*/docker.cid
+/config/*-0*-*.yaml
+/runtime
